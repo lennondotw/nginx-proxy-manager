@@ -5,7 +5,9 @@ import http.client
 import json
 import subprocess
 import sys
+import tempfile
 import time
+from pathlib import Path
 import uuid
 
 
@@ -23,16 +25,23 @@ def request(port, path, method="GET", headers=None):
         connection.close()
 
 
-def check_image(image, public_http=None, public_https=None):
+def check_image(image, public_http=None, public_https=None, from_files=False):
     name = f"npm-public-ports-smoke-{uuid.uuid4().hex[:10]}"
     args = ["run", "-d", "--platform", "linux/amd64", "--name", name,
             "-e", "IP_RANGES_FETCH_ENABLED=false",
             "-p", "127.0.0.1::80", "-p", "127.0.0.1::443", "-p", "127.0.0.1::81",
             "--mount", "type=volume,destination=/etc/letsencrypt"]
-    if public_http is not None:
-        args.extend(["-e", f"PUBLIC_HTTP_PORT={public_http}"])
-    if public_https is not None:
-        args.extend(["-e", f"PUBLIC_HTTPS_PORT={public_https}"])
+    port_files = tempfile.TemporaryDirectory(prefix="npm-public-ports-") if from_files else None
+    if from_files:
+        for protocol, port in (("HTTP", public_http), ("HTTPS", public_https)):
+            Path(port_files.name, protocol).write_text(str(port))
+            args.extend(["-e", f"PUBLIC_{protocol}_PORT__FILE=/run/public-ports/{protocol}"])
+        args.extend(["--mount", f"type=bind,source={port_files.name},destination=/run/public-ports,readonly"])
+    else:
+        if public_http is not None:
+            args.extend(["-e", f"PUBLIC_HTTP_PORT={public_http}"])
+        if public_https is not None:
+            args.extend(["-e", f"PUBLIC_HTTPS_PORT={public_https}"])
     args.append(image)
     expected_ports = {"http": public_http or 80, "https": public_https or 443}
     try:
@@ -103,7 +112,10 @@ server {
         raise
     finally:
         subprocess.run(["docker", "rm", "-fv", name], stdout=subprocess.DEVNULL, check=False)
+        if port_files is not None:
+            port_files.cleanup()
 
 
 check_image(sys.argv[1], 232, 233)
 check_image(sys.argv[1])
+check_image(sys.argv[1], 232, 233, from_files=True)

@@ -14,6 +14,3 @@ if [ "$(is_true "${DISABLE_RESOLVER:-}")" = '0' ]; then
 		echo resolver "$(awk 'BEGIN{ORS=" "} $1=="nameserver" { sub(/%.*$/,"",$2); print ($2 ~ ":")? "["$2"]": $2}' /etc/resolv.conf) valid=10s;" > /etc/nginx/conf.d/include/resolvers.conf
 	fi
 fi
-
-log_info "Configuring public ports ..."
-node /app/scripts/configure-public-ports.mjs
