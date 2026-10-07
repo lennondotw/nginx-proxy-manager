@@ -1,6 +1,6 @@
 # Public HTTP and HTTPS ports
 
-This fork is based on Nginx Proxy Manager 2.16.0. Its image adds runtime public-port configuration and correct host links in the manager. The first image supports `linux/amd64`.
+This fork is based on Nginx Proxy Manager 2.16.0. Its image builds the complete fork backend, frontend and startup scripts on the pinned official runtime, including the public-port contribution on current upstream develop. The first image supports `linux/amd64`.
 
 ```yaml
 services:
@@ -29,4 +29,4 @@ Explicit redirection destinations, the default-site URL, upstream ports, upstrea
 
 When migrating this homelab, back up and remove the old `error_page 497 301 =307 ...:233...` rule in `/data/nginx/custom/server_proxy.conf`; otherwise it will continue to override redirects. The previous rule made Force SSL return 307, while this fork retains the official 301. Keep other service-specific advanced settings.
 
-Build the manager with `yarn --cwd frontend install --frozen-lockfile`, `yarn --cwd frontend locale-compile`, and `yarn --cwd frontend build`. Then build `docker/Dockerfile.public-ports` with `--platform linux/amd64`. The base image is pinned by digest; only the changed backend/config files and rebuilt frontend are layered onto it.
+Build the manager with `yarn --cwd frontend install --frozen-lockfile`, `yarn --cwd frontend locale-compile`, and `yarn --cwd frontend build`. Then build `docker/Dockerfile.public-ports` with `--platform linux/amd64`. The base image is pinned by digest; the complete backend, its frozen-lockfile production dependencies, rebuilt frontend and startup configuration are installed from this checkout. Public-port configuration runs after file-based environment variables are loaded.
