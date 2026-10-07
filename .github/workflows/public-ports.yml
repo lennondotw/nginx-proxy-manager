@@ -37,7 +37,7 @@ jobs:
             --build-arg BUILD_COMMIT="$GITHUB_SHA" \
             --build-arg BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" -t public-ports:test .
       - name: Verify Nginx and the runtime API
-        run: python3 test/public-ports-smoke.py public-ports:test
+        run: NPM_EXPECTED_VERSION=2.16.0 python3 test/public-ports-smoke.py public-ports:test
       - uses: docker/login-action@v3
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/homelab'
         with:

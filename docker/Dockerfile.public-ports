@@ -6,7 +6,7 @@ ENV NPM_BUILD_VERSION="2.16.0" \
 	NPM_BUILD_COMMIT="${BUILD_COMMIT}" \
 	NPM_BUILD_DATE="${BUILD_DATE}"
 LABEL org.opencontainers.image.source="https://github.com/lennondotw/nginx-proxy-manager" \
-	org.opencontainers.image.version="2.16.0-public-ports.2" \
+	org.opencontainers.image.version="2.16.0-public-ports.3" \
 	org.opencontainers.image.revision="${BUILD_COMMIT}"
 
 RUN rm -rf /app
@@ -14,7 +14,8 @@ COPY backend /app
 COPY frontend/dist /app/frontend
 COPY docker/rootfs /
 WORKDIR /app
-RUN yarn install --frozen-lockfile --production \
+RUN node --input-type=module -e 'import fs from "node:fs"; const p = JSON.parse(fs.readFileSync("package.json", "utf8")); p.version = process.env.NPM_BUILD_VERSION; fs.writeFileSync("package.json", JSON.stringify(p, null, "\t") + "\n");' \
+	&& yarn install --frozen-lockfile --production \
 	&& yarn cache clean \
 	&& rm -rf /etc/s6-overlay/s6-rc.d/user/contents.d/frontend /etc/nginx/conf.d/dev.conf \
 	&& chmod 644 /etc/logrotate.d/nginx-proxy-manager

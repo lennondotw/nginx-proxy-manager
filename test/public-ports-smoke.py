@@ -3,6 +3,7 @@
 
 import http.client
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -61,6 +62,9 @@ def check_image(image, public_http=None, public_https=None, from_files=False):
                 raise AssertionError("Manager health endpoint did not become ready")
             time.sleep(2)
         assert health["public_ports"] == expected_ports, health
+        if os.environ.get("NPM_EXPECTED_VERSION"):
+            version = [int(v) for v in os.environ["NPM_EXPECTED_VERSION"].split(".")]
+            assert health["version"] == dict(zip(("major", "minor", "revision"), version)), health
         docker("exec", name, "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
                "-keyout", "/tmp/public-ports.key", "-out", "/tmp/public-ports.crt",
                "-days", "1", "-subj", "/CN=audit.example.test", stderr=subprocess.DEVNULL)
