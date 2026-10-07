@@ -1,0 +1,13 @@
+FROM jc21/nginx-proxy-manager:2.16.0@sha256:57d85bffc776c01909c7b24e127a69a72b7d8c75d387e6cb26c762978fc43e4c
+
+ARG BUILD_COMMIT
+LABEL org.opencontainers.image.source="https://github.com/lennondotw/nginx-proxy-manager" \
+	org.opencontainers.image.version="2.16.0-public-ports.1" \
+	org.opencontainers.image.revision="${BUILD_COMMIT}"
+
+COPY backend/lib/public-ports.js /app/lib/public-ports.js
+COPY backend/scripts/configure-public-ports.mjs /app/scripts/configure-public-ports.mjs
+COPY backend/routes/main.js /app/routes/main.js
+COPY docker/rootfs/etc/s6-overlay/s6-rc.d/prepare/40-dynamic.sh /etc/s6-overlay/s6-rc.d/prepare/40-dynamic.sh
+COPY docker/rootfs/etc/nginx/conf.d/include/force-ssl.conf /etc/nginx/conf.d/include/force-ssl.conf
+COPY frontend/dist /app/frontend
