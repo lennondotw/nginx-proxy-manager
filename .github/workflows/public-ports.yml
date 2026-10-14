@@ -23,7 +23,9 @@ jobs:
           cache: yarn
           cache-dependency-path: frontend/yarn.lock
       - name: Validate runtime configuration
-        run: node --test backend/lib/public-ports.test.js
+        run: |
+          yarn --cwd backend install --frozen-lockfile
+          node --test backend/lib/public-ports.test.js
       - name: Build and test the manager
         run: |
           yarn --cwd frontend install --frozen-lockfile
