@@ -23,7 +23,9 @@ jobs:
           cache: yarn
           cache-dependency-path: frontend/yarn.lock
       - name: Validate runtime configuration
-        run: node --test backend/lib/public-ports.test.js
+        run: |
+          yarn --cwd backend install --frozen-lockfile
+          node --test backend/lib/public-ports.test.js
       - name: Build and test the manager
         run: |
           yarn --cwd frontend install --frozen-lockfile
@@ -37,7 +39,9 @@ jobs:
             --build-arg BUILD_COMMIT="$GITHUB_SHA" \
             --build-arg BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)" -t public-ports:test .
       - name: Verify Nginx and the runtime API
-        run: NPM_EXPECTED_VERSION=2.16.0 python3 test/public-ports-smoke.py public-ports:test
+        run: |
+          NPM_EXPECTED_VERSION=2.16.0 python3 test/public-ports-smoke.py public-ports:test
+          python3 test/host-header-smoke.py public-ports:test
       - uses: docker/login-action@v3
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/homelab'
         with:

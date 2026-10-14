@@ -1,5 +1,17 @@
 # Cypress Test Suite
 
+## Host Header Regression Test
+
+Run `python3 test/host-header-smoke.py <built-image>` from the repository root.
+The backend CI build runs this check against the image it builds. It creates a
+disposable NPM container and renders a proxy host through the backend's normal
+configuration generator, including a custom location. A synthetic HTTPS upstream
+checks that the forwarded Host matches Origin and Referer, and echoes the request
+method, path and body. Coverage includes HTTP and HTTPS, explicit default and
+nonstandard ports, mixed-case names, IPv6 authorities, and HTTP/1.0 without Host.
+Requests execute on the container loopback interface via `docker exec`; the
+container and its anonymous volumes are removed on completion.
+
 ## Running Locally
 
 ```
@@ -44,3 +56,27 @@ The ESLint extension only works on JavaScript files by default, so add the follo
 	"editor.formatOnSave": false,
 },
 ```
+
+## Public-port image smoke test
+
+Run `python3 test/public-ports-smoke.py <built-image>` from the repository root.
+It starts disposable containers for standard ports, custom 232/233, and `__FILE`
+configuration. It checks the live health response against the API schema, Force SSL
+and SSL-listener redirects, ACME/trusted-protocol exceptions, and generated proxy,
+redirection and 404 hosts with unrelated server-level error pages (custom and
+Let's Encrypt certificates). `scripts/ci/test-and-build` runs it after building
+that same image. Requests run inside the tested container via `docker exec`, and
+`__FILE` inputs are copied into it before startup. This also works with a remote
+Docker daemon or a containerized CI agent; no published ports or shared temporary
+directory are needed. Python 3 and access to a Docker daemon are required.
+
+## Forwarded Host image test
+
+Run `python3 test/host-header-smoke.py <built-image>` from the repository root.
+The test waits for the manager, generated HTTP/HTTPS proxy host, both location
+paths and its synthetic upstream. It verifies Host/Origin/Referer consistency,
+request bodies and HTTP/1.0 fallback, then uses a dynamic upstream counter to
+prove cache hits and isolation between client authorities on ports 232 and 233.
+Requests run through `docker exec`, so a remote Docker daemon or containerized
+CI agent needs no shared loopback interface or published ports. The CI image
+build script invokes this test against the image it just built.

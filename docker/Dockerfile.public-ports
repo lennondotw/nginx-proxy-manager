@@ -6,7 +6,7 @@ ENV NPM_BUILD_VERSION="2.16.0" \
 	NPM_BUILD_COMMIT="${BUILD_COMMIT}" \
 	NPM_BUILD_DATE="${BUILD_DATE}"
 LABEL org.opencontainers.image.source="https://github.com/lennondotw/nginx-proxy-manager" \
-	org.opencontainers.image.version="2.16.0-public-ports.3" \
+	org.opencontainers.image.version="2.16.0-public-ports.4" \
 	org.opencontainers.image.revision="${BUILD_COMMIT}"
 
 RUN rm -rf /app
