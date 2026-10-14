@@ -30,5 +30,6 @@ docker build --pull --no-cache --compress \
 	.
 echo -e "${BLUE}❯ ${GREEN}Building Complete${RESET}"
 
-# Exercise startup and redirects against the image that was just built.
+# Exercise both changes against the image that was just built.
 python3 test/public-ports-smoke.py "${BUILT_IMAGE}"
+python3 test/host-header-smoke.py "${BUILT_IMAGE}"
